@@ -1,50 +1,46 @@
 package com.sectong;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main implements Serializable {
 
-    private static final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(Main.class);
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8513279306224995844L;
 
-    private static final String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
-    private static final String MYSQL_USERNAME = "expertuser";
-    private static final String MYSQL_PWD = "expertuser123";
-    private static final String MYSQL_CONNECTION_URL =
-            "jdbc:mysql://localhost:3306/employees?user=" + MYSQL_USERNAME + "&password=" + MYSQL_PWD;
+	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-    private static final JavaSparkContext sc =
-            new JavaSparkContext(new SparkConf().setAppName("SparkJdbcDs").setMaster("local[*]"));
+	private static final String MYSQL_USERNAME = "demo";
+	private static final String MYSQL_PWD = "demo";
+	private static final String MYSQL_CONNECTION_URL = "jdbc:mysql://192.168.1.91:3306/demo";
 
-    private static final SQLContext sqlContext = new SQLContext(sc);
+	private static final JavaSparkContext sc = new JavaSparkContext(new SparkConf().setAppName("SparkJdbcFromDb").setMaster("local[*]"));
 
-    public static void main(String[] args) {
-        //Data source options
-        Map<String, String> options = new HashMap<>();
-        options.put("driver", MYSQL_DRIVER);
-        options.put("url", MYSQL_CONNECTION_URL);
-        options.put("dbtable",
-                    "(select emp_no, concat_ws(' ', first_name, last_name) as full_name from employees) as employees_name");
-        options.put("partitionColumn", "emp_no");
-        options.put("lowerBound", "10001");
-        options.put("upperBound", "499999");
-        options.put("numPartitions", "10");
+	private static final SQLContext sqlContext = new SQLContext(sc);
 
-        //Load MySQL query result as DataFrame
-        DataFrame jdbcDF = sqlContext.load("jdbc", options);
+	public static void main(String[] args) {
 
-        List<Row> employeeFullNameRows = jdbcDF.collectAsList();
+		Properties properties = new Properties();
+		properties.put("user", MYSQL_USERNAME);
+		properties.put("password", MYSQL_PWD);
+		// Load MySQL query result as DataFrame
+		DataFrame jdbcDF = sqlContext.read().jdbc(MYSQL_CONNECTION_URL, "users", properties);
 
-        for (Row employeeFullNameRow : employeeFullNameRows) {
-            LOGGER.info(employeeFullNameRow);
-        }
-    }
+		List<Row> employeeFullNameRows = jdbcDF.collectAsList();
+
+		for (Row employeeFullNameRow : employeeFullNameRows) {
+			LOGGER.info(employeeFullNameRow.toString());
+		}
+	}
 }
