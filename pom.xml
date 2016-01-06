@@ -16,7 +16,13 @@
 		<module>spark-save-to-db</module>
 		<module>spark-stats</module>
 	</modules>
-
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.13</version>
+		</dependency>
+	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spark.version>1.5.1</spark.version>
